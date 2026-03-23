@@ -1,0 +1,44 @@
+[project]
+name = "somnicortex-kernel"
+version = "0.1.0"
+description = "SomniCortex Python memory kernel daemon"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "jsonrpcserver>=5.0.9",
+  "pydantic>=2.11.1",
+  "orjson>=3.10.15",
+  "typing-extensions>=4.12.2",
+]
+
+[project.scripts]
+somnicortex-kernel = "somnicortex_kernel.rpc:main"
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.5",
+  "pytest-asyncio>=0.25.3",
+  "ruff>=0.11.0",
+  "mypy>=1.15.0",
+  "datamodel-code-generator>=0.30.0",
+]
+
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["somnicortex_kernel"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]

@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "happyPath": [
+    { "operation": "classify_store", "fixture": "classify_store_happy", "result": { "store": "episodic", "confidence": 0.93 } },
+    { "operation": "score_salience", "fixture": "score_salience_happy", "result": { "salience": 0.82 } },
+    { "operation": "detect_conflict", "fixture": "detect_conflict_happy", "result": { "conflict": false } },
+    { "operation": "check_neighborhood_consistency", "fixture": "check_neighborhood_consistency_happy", "result": { "action": "insert_clean" } },
+    { "operation": "deduplicate", "fixture": "deduplicate_happy", "result": { "deduplicated": true, "canonicalId": "m-001" } },
+    { "operation": "extract_atomic_facts", "fixture": "extract_atomic_facts_happy", "result": { "facts": ["A implies B", "B implies C"] } },
+    { "operation": "link_intention_to_memories", "fixture": "link_intention_to_memories_happy", "result": { "memoryIds": ["m-001", "m-002"] } },
+    { "operation": "generate_retrieval_query", "fixture": "generate_retrieval_query_happy", "result": { "query": "project architecture decisions" } },
+    { "operation": "rerank", "fixture": "rerank_happy", "result": { "ranked": [{ "id": "m-001", "score": 0.92 }, { "id": "m-010", "score": 0.73 }] } },
+    { "operation": "reject_low_confidence", "fixture": "reject_low_confidence_happy", "result": { "accepted": true, "threshold": 0.6 } },
+    { "operation": "consolidate_cluster", "fixture": "consolidate_cluster_happy", "result": { "clusterId": "c-12", "consolidated": true } },
+    { "operation": "update_activation_weights", "fixture": "update_activation_weights_happy", "result": { "updated": 24 } },
+    { "operation": "update_citation_rates", "fixture": "update_citation_rates_happy", "result": { "updated": 12 } },
+    { "operation": "generate_simulation_seeds", "fixture": "generate_simulation_seeds_happy", "result": { "seeds": ["s-01", "s-02"] } },
+    { "operation": "score_promotion", "fixture": "score_promotion_happy", "result": { "promote": true, "score": 0.84 } },
+    { "operation": "resolve_conflict", "fixture": "resolve_conflict_happy", "result": { "resolution": "keep_new", "confidence": 0.78 } }
+  ],
+  "edgeCases": [
+    { "operation": "score_salience", "fixture": "high_salience", "result": { "salience": 0.99 } },
+    { "operation": "reject_low_confidence", "fixture": "low_confidence", "result": { "accepted": false, "threshold": 0.6, "confidence": 0.42 } },
+    { "operation": "detect_conflict", "fixture": "conflict_detected", "result": { "conflict": true, "existingId": "belief-7" } },
+    { "operation": "check_neighborhood_consistency", "fixture": "pending_review", "result": { "action": "flag_pending", "reason": "inconsistent neighborhood" } },
+    { "operation": "check_neighborhood_consistency", "fixture": "immediate_block", "result": { "action": "immediate_block", "reason": "high severity contradiction" } },
+    { "operation": "score_promotion", "fixture": "do_not_promote", "result": { "promote": false, "score": 0.41 } }
+  ]
+}

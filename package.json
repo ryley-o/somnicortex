@@ -1,0 +1,25 @@
+{
+  "name": "somnicortex-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "description": "SomniCortex runtime + IPC + kernel monorepo",
+  "license": "MIT",
+  "packageManager": "pnpm@10.8.1",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:integration": "pnpm --filter @somnicortex/runtime run test:integration",
+    "lint": "pnpm -r lint",
+    "format": "pnpm -r format",
+    "typecheck": "pnpm -r typecheck",
+    "ipc:generate-python": "pnpm --filter @somnicortex/ipc run generate:python",
+    "kernel:test": "uv run --project packages/kernel-py pytest -q",
+    "kernel:lint": "uv run --project packages/kernel-py ruff check . && uv run --project packages/kernel-py mypy packages/kernel-py/somnicortex_kernel",
+    "ci:test": "pnpm build && pnpm test && pnpm kernel:test"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "better-sqlite3"
+    ]
+  }
+}

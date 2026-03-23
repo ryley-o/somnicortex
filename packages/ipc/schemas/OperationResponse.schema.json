@@ -1,0 +1,76 @@
+{
+  "$ref": "#/definitions/OperationResponse",
+  "definitions": {
+    "OperationResponse": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "classify_store",
+            "score_salience",
+            "detect_conflict",
+            "check_neighborhood_consistency",
+            "deduplicate",
+            "extract_atomic_facts",
+            "link_intention_to_memories",
+            "generate_retrieval_query",
+            "rerank",
+            "reject_low_confidence",
+            "consolidate_cluster",
+            "update_activation_weights",
+            "update_citation_rates",
+            "generate_simulation_seeds",
+            "score_promotion",
+            "resolve_conflict"
+          ]
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "result": {
+          "type": "object",
+          "additionalProperties": {},
+          "default": {}
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "code": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "details": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "code",
+                "message"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "protocolVersion": {
+          "type": "string",
+          "default": "1.0.0"
+        }
+      },
+      "required": [
+        "operation",
+        "ok"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

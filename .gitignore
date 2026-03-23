@@ -159,6 +159,17 @@ venv.bak/
 .dmypy.json
 dmypy.json
 
+# Node / pnpm
+node_modules/
+packages/*/dist/
+*.tsbuildinfo
+.pnpm-store/
+pnpm-debug.log*
+
+# Local runtime/test artifacts
+.tmp-*/
+*.sock
+
 # Pyre type checker
 .pyre/
 

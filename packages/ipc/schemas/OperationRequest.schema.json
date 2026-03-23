@@ -1,0 +1,44 @@
+{
+  "$ref": "#/definitions/OperationRequest",
+  "definitions": {
+    "OperationRequest": {
+      "type": "object",
+      "properties": {
+        "operation": {
+          "type": "string",
+          "enum": [
+            "classify_store",
+            "score_salience",
+            "detect_conflict",
+            "check_neighborhood_consistency",
+            "deduplicate",
+            "extract_atomic_facts",
+            "link_intention_to_memories",
+            "generate_retrieval_query",
+            "rerank",
+            "reject_low_confidence",
+            "consolidate_cluster",
+            "update_activation_weights",
+            "update_citation_rates",
+            "generate_simulation_seeds",
+            "score_promotion",
+            "resolve_conflict"
+          ]
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": {}
+        },
+        "fixture": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation",
+        "payload"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}
