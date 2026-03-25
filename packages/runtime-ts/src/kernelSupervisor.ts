@@ -1,6 +1,7 @@
 import { spawn, type ChildProcess } from "node:child_process";
 import net from "node:net";
 import fs from "node:fs/promises";
+import path from "node:path";
 import { exists } from "./fs.js";
 import { parseTcpAddress, type KernelAddress } from "./kernelClient.js";
 
@@ -32,8 +33,9 @@ export class KernelSupervisor {
     if (!cmd) {
       throw new Error("Kernel command cannot be empty");
     }
+    const normalizedArgs = this.normalizeAgentDirArg(args);
     this.stderrChunks = [];
-    this.child = spawn(cmd, args, {
+    this.child = spawn(cmd, normalizedArgs, {
       stdio: ["ignore", "ignore", "pipe"],
       cwd: this.options?.cwd,
       env: this.options?.env
@@ -104,5 +106,30 @@ export class KernelSupervisor {
         resolve(false);
       });
     });
+  }
+
+  private normalizeAgentDirArg(args: string[]): string[] {
+    const normalized = [...args];
+    for (let i = 0; i < normalized.length; i += 1) {
+      const arg = normalized[i];
+      if (!arg) {
+        continue;
+      }
+      if (arg === "--agent-dir") {
+        const value = normalized[i + 1];
+        if (typeof value === "string" && value.length > 0) {
+          normalized[i + 1] = path.resolve(value);
+        }
+        i += 1;
+        continue;
+      }
+      if (arg.startsWith("--agent-dir=")) {
+        const value = arg.slice("--agent-dir=".length);
+        if (value.length > 0) {
+          normalized[i] = `--agent-dir=${path.resolve(value)}`;
+        }
+      }
+    }
+    return normalized;
   }
 }

@@ -2,9 +2,10 @@ import path from "node:path";
 import fs from "node:fs/promises";
 import { createAgentFromBirthSpec } from "@somnicortex/runtime";
 
+const cli = parseArgs(process.argv.slice(2));
 const appRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), "..");
 const repoRoot = path.resolve(appRoot, "..", "..");
-const agentRoot = path.join(appRoot, ".agent");
+const agentRoot = path.resolve(cli.agentDir ?? path.join(appRoot, ".agent"));
 const birthSpecPath = path.join(appRoot, "birth_spec.yaml");
 const archetype = await resolveArchetypeName(birthSpecPath);
 const fixturePath = path.join(repoRoot, "packages", "ipc", "fixtures", "kernel-operations.json");
@@ -22,6 +23,8 @@ const agent = await createAgentFromBirthSpec(
       pythonBin,
       "-m",
       "somnicortex_kernel.rpc",
+      "--agent-dir",
+      agentRoot,
       "--tcp-port",
       String(kernelPort),
       "--fixture-file",
@@ -70,4 +73,26 @@ async function resolvePythonBin() {
     }
   }
   return "python3";
+}
+
+function parseArgs(argv) {
+  let agentDir;
+  for (let i = 0; i < argv.length; i += 1) {
+    const arg = argv[i];
+    if (arg === "--agent-dir") {
+      const value = argv[i + 1];
+      if (!value) {
+        throw new Error("Missing value for --agent-dir");
+      }
+      agentDir = value;
+      i += 1;
+      continue;
+    }
+    if (arg.startsWith("--agent-dir=")) {
+      agentDir = arg.slice("--agent-dir=".length);
+      continue;
+    }
+    throw new Error(`Unknown argument: ${arg}`);
+  }
+  return { agentDir };
 }

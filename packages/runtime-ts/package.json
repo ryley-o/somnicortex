@@ -10,6 +10,8 @@
   "bin": {
     "somnicortex-create-agent": "dist/src/cli/create-agent.js",
     "somnicortex-send-task": "dist/src/cli/send-task.js",
+    "somnicortex-start-runtime": "dist/src/cli/start-runtime.js",
+    "somnicortex-identity-change": "dist/src/cli/identity-change.js",
     "somnicortex-inspect-agent": "dist/src/cli/inspect-agent.js",
     "somnicortex-approve": "dist/src/cli/approve.js",
     "somnicortex-bootstrap-kernel": "dist/src/cli/bootstrap-kernel.js"

@@ -170,6 +170,7 @@ pnpm-debug.log*
 .tmp-*/
 *.sock
 apps/somni/.agent/
+--agent-dir/
 
 # Pyre type checker
 .pyre/

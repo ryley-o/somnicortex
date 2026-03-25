@@ -102,6 +102,11 @@ def serve_tcp(port: int, fixture_file: Path) -> None:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--agent-dir",
+        default=None,
+        help="Agent root directory used to derive the default UNIX socket path.",
+    )
+    parser.add_argument(
         "--socket-path",
         default=os.environ.get(
             "SOMNICORTEX_KERNEL_SOCKET",
@@ -124,7 +129,10 @@ def main() -> None:
     if args.tcp_port is not None:
         serve_tcp(args.tcp_port, Path(args.fixture_file))
     else:
-        serve(Path(args.socket_path), Path(args.fixture_file))
+        socket_path = Path(args.socket_path)
+        if args.agent_dir:
+            socket_path = Path(args.agent_dir) / "memory" / "kernel" / "kernel.sock"
+        serve(socket_path, Path(args.fixture_file))
 
 
 if __name__ == "__main__":

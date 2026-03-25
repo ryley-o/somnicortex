@@ -4,22 +4,18 @@ import type { ApprovalResult } from "@somnicortex/ipc";
 import type { AgentConfig, AgentPaths } from "./types.js";
 import { appendJsonl, readJson, writeJsonAtomic } from "./fs.js";
 
+export interface ApprovalProposal {
+  requestId: string;
+  requestPath: string;
+}
+
 export async function requestApproval(
   paths: AgentPaths,
   config: AgentConfig,
   scope: string,
   payload: Record<string, unknown>
 ): Promise<ApprovalResult> {
-  const requestId = `apr_${Date.now().toString(36)}`;
-  const requestPath = path.join(paths.audit, "pending_approvals", `${requestId}.json`);
-  const now = new Date().toISOString();
-  await writeJsonAtomic(requestPath, {
-    requestId,
-    scope,
-    payload,
-    status: "pending",
-    createdAt: now
-  });
+  const { requestId, requestPath } = await proposeApproval(paths, scope, payload);
 
   const deadline = Date.now() + config.approvalTimeoutMs;
   while (Date.now() < deadline) {
@@ -60,6 +56,24 @@ export async function requestApproval(
   });
   await appendJsonl(path.join(paths.audit, "approvals.log"), timeoutResult);
   return timeoutResult;
+}
+
+export async function proposeApproval(
+  paths: AgentPaths,
+  scope: string,
+  payload: Record<string, unknown>
+): Promise<ApprovalProposal> {
+  const requestId = `apr_${Date.now().toString(36)}`;
+  const requestPath = path.join(paths.audit, "pending_approvals", `${requestId}.json`);
+  const now = new Date().toISOString();
+  await writeJsonAtomic(requestPath, {
+    requestId,
+    scope,
+    payload,
+    status: "pending",
+    createdAt: now
+  });
+  return { requestId, requestPath };
 }
 
 function wait(ms: number): Promise<void> {

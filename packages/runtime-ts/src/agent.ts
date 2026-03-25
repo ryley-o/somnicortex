@@ -29,6 +29,12 @@ export class Agent implements AgentApi {
   private readonly kernelClient: KernelClient;
 
   private constructor(agentRoot: string, config?: Partial<AgentConfig>) {
+    if (!path.isAbsolute(agentRoot)) {
+      throw new Error(
+        `Agent root must be an absolute path. Received: "${agentRoot}". ` +
+          "Resolve it first (for example with path.resolve)."
+      );
+    }
     this.paths = deriveAgentPaths(agentRoot);
     this.config = { ...defaultConfig(agentRoot), ...config };
     this.sleep = new SleepManager(this.paths);

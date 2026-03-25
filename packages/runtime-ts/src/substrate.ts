@@ -25,16 +25,19 @@ export async function initializeSubstrate(
 ): Promise<void> {
   const dirs = [
     paths.root,
+    path.join(paths.root, "tools"),
+    path.join(paths.root, "skills"),
+    path.join(paths.root, "skills", "recipes"),
     path.join(paths.memory, "episodic"),
     path.join(paths.memory, "semantic"),
     path.join(paths.memory, "procedural"),
     path.join(paths.memory, "working"),
     path.join(paths.memory, "values"),
-    path.join(paths.memory, "kernel", "model_weights"),
-    path.join(paths.memory, "kernel", "training_data"),
+    path.join(paths.memory, "kernel"),
     path.join(paths.audit, "pending_approvals"),
     path.join(paths.audit, "reports"),
     path.join(paths.sleep, "queue"),
+    path.join(paths.sleep, "summaries"),
     path.join(paths.sleep, "dreams")
   ];
   await Promise.all(dirs.map((d) => ensureDir(d)));
@@ -86,6 +89,36 @@ export async function initializeSubstrate(
       "utf8"
     );
   }
+  await ensureTextFile(
+    path.join(paths.root, "tools", "mcp_servers.yaml"),
+    "servers: []\n"
+  );
+  await ensureTextFile(
+    path.join(paths.root, "tools", "tool_policies.yaml"),
+    [
+      "defaults:",
+      "  unknown_tool: block",
+      "  rate_limit_window_seconds: 60",
+      "",
+      "tools:",
+      "  default_executor:",
+      "    status: allow",
+      ""
+    ].join("\n")
+  );
+  await ensureTextFile(
+    path.join(paths.root, "skills", "catalog.md"),
+    "# Skills Catalog\n\n"
+  );
+  await ensureTextFile(
+    path.join(paths.memory, "kernel", "kernel_config.yaml"),
+    [
+      "kernel:",
+      "  socket_path: memory/kernel/kernel.sock",
+      ""
+    ].join("\n")
+  );
+  await ensureTextFile(path.join(paths.audit, "decisions.log"), "");
 
   await ensureIdentityBootstrap(paths);
   await writeJsonAtomic(path.join(paths.sleep, "progress.json"), {
@@ -137,4 +170,11 @@ async function ensureIdentityBootstrap(paths: AgentPaths): Promise<void> {
       updatedAt: new Date().toISOString()
     });
   }
+}
+
+async function ensureTextFile(filePath: string, content: string): Promise<void> {
+  if (await exists(filePath)) {
+    return;
+  }
+  await fs.writeFile(filePath, content, "utf8");
 }

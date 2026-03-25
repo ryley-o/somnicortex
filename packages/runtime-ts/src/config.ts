@@ -9,7 +9,17 @@ export function defaultConfig(agentRoot: string): AgentConfig {
     agentId: randomUUID(),
     protocolVersion,
     kernelSocketPath: path.join(agentRoot, "memory", "kernel", "kernel.sock"),
-    kernelCommand: ["uv", "run", "--project", "packages/kernel-py", "python", "-m", "somnicortex_kernel.rpc"],
+    kernelCommand: [
+      "uv",
+      "run",
+      "--project",
+      "packages/kernel-py",
+      "python",
+      "-m",
+      "somnicortex_kernel.rpc",
+      "--agent-dir",
+      agentRoot
+    ],
     approvalPollMs: 5000,
     approvalTimeoutMs: 24 * 60 * 60 * 1000,
     sleepState: "WAKE",
