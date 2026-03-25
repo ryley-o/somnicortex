@@ -43,6 +43,20 @@ function run(command, args, cwd) {
 }
 
 async function runDatamodelCodegen(root, schemaPath, outputPath) {
+  const commonArgs = [
+    "--input",
+    schemaPath,
+    "--input-file-type",
+    "jsonschema",
+    "--output",
+    outputPath,
+    "--target-python-version",
+    "3.11",
+    "--output-model-type",
+    "pydantic_v2.BaseModel",
+    "--disable-timestamp"
+  ];
+
   const uvAvailable = spawnSync("uv", ["--version"], { cwd: root }).status === 0;
   if (uvAvailable) {
     try {
@@ -53,16 +67,7 @@ async function runDatamodelCodegen(root, schemaPath, outputPath) {
           "--project",
           "packages/kernel-py",
           "datamodel-codegen",
-          "--input",
-          schemaPath,
-          "--input-file-type",
-          "jsonschema",
-          "--output",
-          outputPath,
-          "--target-python-version",
-          "3.11",
-          "--output-model-type",
-          "pydantic_v2.BaseModel"
+          ...commonArgs
         ],
         root
       );
@@ -78,16 +83,7 @@ async function runDatamodelCodegen(root, schemaPath, outputPath) {
       [
         "-m",
         "datamodel_code_generator",
-        "--input",
-        schemaPath,
-        "--input-file-type",
-        "jsonschema",
-        "--output",
-        outputPath,
-        "--target-python-version",
-        "3.11",
-        "--output-model-type",
-        "pydantic_v2.BaseModel"
+        ...commonArgs
       ],
       root
     );
@@ -95,18 +91,7 @@ async function runDatamodelCodegen(root, schemaPath, outputPath) {
   } catch {
     await run(
       "datamodel-codegen",
-      [
-        "--input",
-        schemaPath,
-        "--input-file-type",
-        "jsonschema",
-        "--output",
-        outputPath,
-        "--target-python-version",
-        "3.11",
-        "--output-model-type",
-        "pydantic_v2.BaseModel"
-      ],
+      commonArgs,
       root
     );
   }

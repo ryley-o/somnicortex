@@ -1,0 +1,14 @@
+{
+  "name": "somni-app",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "run:mcp": "pnpm --filter @somnicortex/runtime build && node adapters/mcp/server.mjs",
+    "create:agent": "node scripts/create-default-agent.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "@somnicortex/runtime": "workspace:*"
+  }
+}

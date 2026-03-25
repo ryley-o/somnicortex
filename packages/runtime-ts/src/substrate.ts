@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import type { AgentConfig, AgentPaths } from "./types.js";
-import { ensureDir, exists, writeJsonAtomic } from "./fs.js";
+import { ensureDir, exists, sha256, writeJsonAtomic } from "./fs.js";
 import {
   migrateEpisodic,
   migrateProcedural,
@@ -96,16 +96,45 @@ export async function initializeSubstrate(
 
 async function ensureIdentityBootstrap(paths: AgentPaths): Promise<void> {
   const identityLogPath = path.join(paths.memory, "values", "identity_log.jsonl");
+  const snapshotPath = path.join(paths.memory, "values", "snapshot_hash");
   if (!(await exists(identityLogPath))) {
+    const timestamp = new Date().toISOString();
+    const initial = {
+      change_type: "initial",
+      author: "human_operator",
+      timestamp,
+      approved: true,
+      payload: {},
+      prev_hash: "GENESIS"
+    };
+    const hash = sha256(JSON.stringify(initial));
     await fs.writeFile(
       identityLogPath,
-      `${JSON.stringify({
-        change_type: "initial",
-        author: "human_operator",
-        timestamp: new Date().toISOString(),
-        payload: {}
-      })}\n`,
+      `${JSON.stringify({ ...initial, hash })}\n`,
       "utf8"
     );
+    await writeJsonAtomic(snapshotPath, {
+      sha256: hash,
+      updatedAt: timestamp
+    });
+    return;
+  }
+
+  if (!(await exists(snapshotPath))) {
+    const raw = await fs.readFile(identityLogPath, "utf8");
+    const lines = raw
+      .split("\n")
+      .map((l) => l.trim())
+      .filter(Boolean);
+    const tail = lines[lines.length - 1] ?? "";
+    const parsed = tail ? (JSON.parse(tail) as Record<string, unknown>) : {};
+    const hash =
+      typeof parsed.hash === "string" && parsed.hash.length
+        ? parsed.hash
+        : sha256(tail);
+    await writeJsonAtomic(snapshotPath, {
+      sha256: hash,
+      updatedAt: new Date().toISOString()
+    });
   }
 }

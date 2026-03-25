@@ -3,6 +3,8 @@ import path from "node:path";
 import type { SleepStateType } from "@somnicortex/ipc";
 import type { AgentPaths } from "./types.js";
 import { exists, readJson, writeJsonAtomic } from "./fs.js";
+import { compactIdentitySnapshot } from "./identity.js";
+import { runDefaultModeSimulator } from "./simulator.js";
 
 type SleepMode = "micro" | "full";
 
@@ -64,14 +66,31 @@ export class SleepManager {
   }
 
   private async runFullSleep(_budgetSeconds: number): Promise<void> {
+    const jobs = [
+      "full_sleep_stage_1",
+      "full_sleep_stage_2",
+      "full_sleep_stage_3",
+      "full_sleep_stage_4",
+      "full_sleep_stage_5",
+      "full_sleep_stage_6",
+      "full_sleep_stage_7",
+      "full_sleep_stage_8",
+      "full_sleep_stage_9",
+      "full_sleep_stage_10",
+      "dms_simulation_pass",
+      "identity_snapshot_compaction",
+      "full_sleep_stage_13",
+      "full_sleep_stage_14"
+    ];
     for (let stage = 1; stage <= 14; stage += 1) {
       await writeJsonAtomic(path.join(this.paths.sleep, "progress.json"), {
         fullSleepStage: stage,
         interrupted: false,
         updatedAt: new Date().toISOString()
       });
-      await this.enqueueJob(`full_sleep_stage_${stage}`, 100 - stage, {});
+      await this.enqueueJob(jobs[stage - 1] ?? `full_sleep_stage_${stage}`, 100 - stage, {});
     }
+    await this.processQueue();
     await writeJsonAtomic(path.join(this.paths.sleep, "progress.json"), {
       fullSleepStage: 14,
       interrupted: false,
@@ -115,6 +134,17 @@ export class SleepManager {
         lastPayload: payload,
         updatedAt: new Date().toISOString()
       });
+    }
+
+    if (type === "dms_simulation_pass") {
+      await runDefaultModeSimulator(this.paths, {
+        seed: String(payload.seed ?? "full_sleep_pass")
+      });
+      return;
+    }
+
+    if (type === "identity_snapshot_compaction") {
+      await compactIdentitySnapshot(this.paths);
     }
   }
 }

@@ -19,6 +19,7 @@ import { appendIdentityEntry, verifyIdentitySnapshot } from "./identity.js";
 import { runFourBeatCycle } from "./cognition.js";
 import { appendJsonl, readJson } from "./fs.js";
 import { generateDream, promoteDream } from "./simulator.js";
+import { GovernanceViolation } from "./errors.js";
 
 export class Agent implements AgentApi {
   private readonly config: AgentConfig;
@@ -100,7 +101,7 @@ export class Agent implements AgentApi {
   ): Promise<ApprovalResult> {
     await this.sleep.setState("SUPERVISED_PAUSE");
     const result = await requestApproval(this.paths, this.config, scope, payload);
-    await this.sleep.setState("WAKE");
+    await this.transitionToWakeWithIdentityCheck();
     return result;
   }
 
@@ -127,6 +128,7 @@ export class Agent implements AgentApi {
 
   async triggerSleep(mode: "micro" | "full", budgetSeconds: number): Promise<void> {
     await this.sleep.trigger(mode, budgetSeconds);
+    await this.transitionToWakeWithIdentityCheck();
   }
 
   async trigger_sleep(mode: "micro" | "full", budgetSeconds: number): Promise<void> {
@@ -161,6 +163,9 @@ export class Agent implements AgentApi {
     if (scope === "personality") {
       const result = await this.requestApproval("identity.personality", payload);
       approved = result.decision === "approved";
+      if (!approved) {
+        throw new GovernanceViolation(`personality update rejected: ${result.reason ?? "no reason provided"}`);
+      }
     }
     await appendIdentityEntry(this.paths, scope, payload, "agent", approved);
   }
@@ -169,7 +174,10 @@ export class Agent implements AgentApi {
     return generateDream(this.paths, seed);
   }
 
-  async promoteSimulation(id: string, destination: "semantic" | "procedural" | "values"): Promise<void> {
+  async promoteSimulation(
+    id: string,
+    destination: "semantic" | "procedural" | "values" | "identity"
+  ): Promise<void> {
     await promoteDream(this.paths, id, destination);
   }
 
@@ -210,6 +218,19 @@ export class Agent implements AgentApi {
     skillsDb.close();
     prospectiveDb.close();
     return { episodic, semanticNodes, semanticEdges, proceduralSkills, intentions };
+  }
+
+  private async transitionToWakeWithIdentityCheck(): Promise<void> {
+    const snapshotOk = await verifyIdentitySnapshot(this.paths);
+    if (snapshotOk) {
+      await this.sleep.setState("WAKE");
+      return;
+    }
+    await this.sleep.setState("SUPERVISED_PAUSE");
+    await appendJsonl(path.join(this.paths.audit, "decisions.log"), {
+      eventType: "snapshot_mismatch_on_wake",
+      timestamp: new Date().toISOString()
+    });
   }
 }
 

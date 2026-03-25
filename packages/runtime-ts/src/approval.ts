@@ -43,13 +43,22 @@ export async function requestApproval(
 
   const timeoutResult: ApprovalResult = {
     requestId,
-    decision: "timeout",
+    decision: "rejected",
     reviewer: null,
     decidedAt: new Date().toISOString(),
-    reason: "approval timeout reached"
+    reason: "approval timeout reached (auto-rejected)"
   };
+  await writeJsonAtomic(requestPath, {
+    requestId,
+    scope,
+    payload,
+    status: "rejected",
+    reviewer: null,
+    decidedAt: timeoutResult.decidedAt,
+    reason: timeoutResult.reason,
+    autoRejected: true
+  });
   await appendJsonl(path.join(paths.audit, "approvals.log"), timeoutResult);
-  await fs.rm(requestPath, { force: true });
   return timeoutResult;
 }
 

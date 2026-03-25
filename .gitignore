@@ -169,6 +169,7 @@ pnpm-debug.log*
 # Local runtime/test artifacts
 .tmp-*/
 *.sock
+apps/somni/.agent/
 
 # Pyre type checker
 .pyre/
